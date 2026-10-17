@@ -51,7 +51,9 @@ python3 -m http.server 4317
 
 项目已配置 GitHub Pages 自动部署。推送到 GitHub 仓库的 `main` 分支后，`.github/workflows/pages.yml` 会自动发布 HTTPS 网站。公开地址通常为：
 
-`https://<GitHub 用户名>.github.io/piu-piu-chinese-island/`
+公开学习地址：<https://huaxue0601-lab.github.io/piu-piu-chinese-island/>
+
+源码仓库：<https://github.com/huaxue0601-lab/piu-piu-chinese-island>
 
 GitHub Pages 的 HTTPS 环境支持录音权限。生词和录音保存在当前浏览器：生词可随进度 JSON 导出，录音文件只保留在录制设备上。
 
