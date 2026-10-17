@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Piu Piu 中文岛 · 自检 + 一键打包（v10）
+// Piu Piu 中文岛 · 自检 + 一键打包（v11）
 // 用法：node tools/check_and_export.js [--export]  （--export 打包 zip 到上级目录）
 const fs = require("fs");
 const path = require("path");
@@ -23,6 +23,7 @@ function read(p) {
 
 const files = [
   "index.html", "styles.css", "app.js", "content.js", "pinyin-data.js",
+  "standards-content.js",
   "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js",
   "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "assets/picture-talk/s4-u1.jpg",
@@ -32,6 +33,7 @@ files.forEach((f) => ok(fs.existsSync(path.join(ROOT, f)), `缺少文件 ${f}`))
 
 const html = read("index.html") || "";
 const app = read("app.js") || "";
+const standards = read("standards-content.js") || "";
 const thai = read("thai-translations.js") || "";
 const games = read("miniGameLibs.js") || "";
 const mats = read("materials.js") || "";
@@ -44,16 +46,16 @@ const store = read("learning-store.js") || "";
 const sw = read("sw.js") || "";
 
 // —— 脚本版本参（v4 踩过的缓存坑）——
-["styles.css", "pinyin-data.js", "content.js", "thai-translations.js", "materials.js", "culture.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js"].forEach((s) => {
-  ok(html.includes(`${s}?v=10`), `index.html 未带 v10 版本参 ${s}`);
+["styles.css", "pinyin-data.js", "content.js", "standards-content.js", "thai-translations.js", "materials.js", "culture.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js"].forEach((s) => {
+  ok(html.includes(`${s}?v=11`), `index.html 未带 v11 版本参 ${s}`);
 });
-ok(html.includes("miniGameLibs.js?v=10.1"), "miniGameLibs 未带 v10.1 修复版本参");
-ok(html.includes("app.js?v=10.2"), "app.js 未带 v10.2 内容版本参");
-ok(html.includes("life.js?v=10.1"), "life.js 未带 v10.1 内容版本参");
+ok(html.includes("miniGameLibs.js?v=11"), "miniGameLibs 未带 v11 版本参");
+ok(html.includes("app.js?v=11"), "app.js 未带 v11 内容版本参");
+ok(html.includes("life.js?v=11"), "life.js 未带 v11 内容版本参");
 
 // —— 游戏引擎（v3/v6）——
-["toneLift", "breath", "flatCurly", "fish", "measure", "order"].forEach((g) => ok(games.includes(`${g}:`), `miniGameLibs 缺少 ${g}`));
-[0, 2, 3, 5, 12, 13].forEach((i) => ok(games.includes(`${i}: "`), `playableGames 映射缺 ${i}`));
+["toneLift", "breath", "flatCurly", "fish", "measure", "order", "wordMatch", "lifeReply"].forEach((g) => ok(games.includes(`${g}:`), `miniGameLibs 缺少 ${g}`));
+[0, 2, 3, 5, 12, 13, 14, 15].forEach((i) => ok(games.includes(`${i}: "`), `playableGames 映射缺 ${i}`));
 ["openMiniGame", "renderPlayableQuestion", "answerPlayable", "nextPlayableQuestion", "renderPlayableDone", "pickOrderWord", "checkOrder", "shuffled"].forEach((fn) => ok(app.includes(`function ${fn}`), `app.js 缺函数 ${fn}`));
 ok(games.split("pool:").length - 1 >= 6, "游戏题库不足");
 
@@ -74,7 +76,7 @@ ok(fs.existsSync(path.join(ROOT, "manifest.webmanifest")), "manifest 缺失");
 // —— 输出型材料（v4/v6/v7）——
 ["dialogue", "reading", "pictureTalk", "menu", "numbers", "weather", "chat", "skit", "listening", "diary", "video"].forEach((k) => ok(mats.includes(k), `materials.js 缺 ${k}`));
 ["renderStageMaterials", "answerReading", "answerListening"].forEach((fn) => ok(app.includes(`function ${fn}`), `材料渲染缺 ${fn}`));
-ok(html.includes("materials.js?v=10"), "materials 未加载");
+ok(html.includes("materials.js?v=11"), "materials 未加载");
 
 // —— 文化角 / 放松角（v5/v7）——
 ["origins", "idioms", "poems", "fables", "facts", "slangs", "slots"].forEach((k) => ok(cult.includes(k), `culture.js 缺 ${k}`));
@@ -139,10 +141,27 @@ ok(app.includes("current.length < 2"), "录音重点未限制最多两项");
 ok(milestones.includes("window.stageMilestones"), "阶段任务数据缺失");
 ok(Object.keys(JSON.parse(JSON.stringify((milestones.match(/\"[1-5]-\d+\"/g) || [])))).length >= 9, "阶段任务数量不足");
 ok(app.includes("function renderMilestone") && app.includes("function toggleMilestoneTask"), "阶段任务交互缺失");
-ok(sw.includes("learning-store.js?v=10") && sw.includes("milestones.js?v=10"), "离线缓存未包含 v10 新文件");
+ok(sw.includes("learning-store.js?v=11") && sw.includes("milestones.js?v=11"), "离线缓存未包含 v11 文件");
+
+// —— 今日学习 / 三级提示 / 循环复习（v11）——
+["getNextLearningTarget", "renderTodayPlan", "renderSupportControl", "setSupportLevel", "renderSpiralReview", "renderUnitSpecialPractice", "renderPairGame", "selectPair"].forEach((fn) => ok(app.includes(`function ${fn}`), `v11 学习流程缺 ${fn}`));
+ok(app.includes('data-support = state.supportLevel') || app.includes('dataset.support = state.supportLevel'), "三级提示未绑定页面状态");
+ok(app.includes("循环复习 · ทบทวนแบบวนซ้ำ"), "循环复习缺中泰对照");
+ok(games.includes('type: "pair"') && games.includes("จับคู่คำกับความหมาย"), "词义配对交互或泰语缺失");
+ok(games.includes("ตอบอย่างไรในชีวิตจริง"), "生活回应游戏缺泰语");
+
+// —— 国际中文教育标准内容扩展（v11）——
+ok(standards.includes("window.levelOneBenchmark"), "缺一级量化指标说明");
+ok(standards.includes("window.standardLessonDepth"), "缺标准课程扩展数据");
+["269", "300", "500", "48"].forEach((metric) => ok(standards.includes(`\"${metric}\"`), `一级指标缺 ${metric}`));
+[2, 3, 4, 5].forEach((stageId) => ok(standards.includes(`  ${stageId}: [`), `标准扩展缺阶段 ${stageId}`));
+ok((standards.match(/standardLine\(/g) || []).length >= 100, "标准扩展例句不足 100 条");
+ok((standards.match(/thaiTask:/g) || []).length === 36, "36 课交际任务泰语未补齐");
+["renderStandardBenchmark", "renderStandardLessonDepth"].forEach((fn) => ok(app.includes(`function ${fn}`), `标准内容渲染缺 ${fn}`));
+ok(sw.includes("standards-content.js?v=11"), "离线缓存缺标准扩展内容");
 
 // —— 语法（node --check）——
-["app.js", "content.js", "pinyin-data.js", "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js", "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js"].forEach((f) => {
+["app.js", "content.js", "standards-content.js", "pinyin-data.js", "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js", "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js"].forEach((f) => {
   try { execSync(`node --check "${path.join(ROOT, f)}"`, { stdio: "pipe" }); pass += 1; }
   catch { ERRORS.push(`语法错误 ${f}`); }
 });
@@ -156,7 +175,7 @@ if (NOTES.length) { NOTES.forEach((n) => console.log(`  ! ${n}`)); }
 
 // —— 导出（可选）——
 if (process.argv.includes("--export")) {
-  const outName = `Piu-Piu-Chinese-Island-v10-2026-10-17.zip`;
+  const outName = `Piu-Piu-Chinese-Island-v11-2026-10-17.zip`;
   const outPath = path.join(ROOT, "..", outName);
   try {
     execSync(`cd "${ROOT}" && zip -rq "${outPath}" . -x "*.DS_Store" -x ".git/*" -x "node_modules/*"`);

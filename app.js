@@ -206,6 +206,8 @@ const games = [
   { name: "四站旅行", thai: "เดินทางสี่สถานี", lesson: "第8课", time: "15分钟", desc: "依次完成听、读、打、说四站。允许提示和重试，四站完成即获得拼音毕业章。" },
   { name: "量词配对", thai: "จับคู่คำลักษณนาม", lesson: "第3阶段", time: "5分钟", desc: "看到名词，选出正确的量词：一个苹果、一只猫、一条鱼。答错会进易错本。" },
   { name: "语序拼图", thai: "ต่อประโยค", lesson: "第3阶段", time: "6分钟", desc: "把打乱的词块按中文语序排成一句。中文语序和泰语不一样，拼一次就记住。" },
+  { name: "词义连连看", thai: "จับคู่คำกับความหมาย", lesson: "第2–5阶段", time: "4分钟", desc: "把中文词语和泰语意思配成一对。全部配完后，再听一遍中文。" },
+  { name: "生活怎么回应", thai: "ตอบอย่างไรในชีวิตจริง", lesson: "第4–5阶段", time: "5分钟", desc: "看到一个真实生活情境，选出自然、礼貌而且能完成沟通的回应。" },
 ];
 
 games.forEach((game, index) => {
@@ -305,6 +307,7 @@ const state = {
   recordings: [],
   learningDataReady: false,
   milestoneProgress: loadStoredJSON("piu-milestones", {}),
+  supportLevel: localStorage.getItem("piu-support-level") || "full",
 };
 
 const main = document.querySelector("main");
@@ -325,6 +328,25 @@ function setMode(mode) {
   state.mode = mode;
   localStorage.setItem("piu-mode", state.mode);
   render();
+}
+
+function setSupportLevel(level) {
+  if (!["full", "pinyin", "hanzi"].includes(level)) return;
+  state.supportLevel = level;
+  localStorage.setItem("piu-support-level", level);
+  render();
+}
+
+function renderSupportControl() {
+  const options = [
+    ["full", "汉字＋拼音＋泰语", "จีน + พินอิน + ไทย"],
+    ["pinyin", "汉字＋拼音", "จีน + พินอิน"],
+    ["hanzi", "只看汉字", "ดูเฉพาะภาษาจีน"],
+  ];
+  return `<section class="support-control" aria-label="学习提示级别">
+    <div><strong>提示级别</strong><small>ระดับตัวช่วย</small></div>
+    <div class="support-options">${options.map(([value, zh, thai]) => `<button class="${state.supportLevel === value ? "active" : ""}" onclick="setSupportLevel('${value}')"><span>${zh}</span><small>${thai}</small></button>`).join("")}</div>
+  </section>`;
 }
 
 function pageHead(eyebrow, title, lead, thai, aside = "") {
@@ -382,6 +404,50 @@ function isUnitComplete(stageId, unitIndex) {
   return state.unitCompleted.includes(unitProgressKey(stageId, unitIndex));
 }
 
+function getNextLearningTarget() {
+  const pendingPinyin = lessons.find((item) => !state.completed.includes(item.id));
+  if (pendingPinyin) return { stageId: 1, unitIndex: pendingPinyin.id - 1, title: pendingPinyin.title, thai: pendingPinyin.thaiTitle };
+  for (let stageId = 2; stageId <= 5; stageId += 1) {
+    const units = window.stageCurriculum?.[stageId] || [];
+    const unitIndex = units.findIndex((_, index) => !isUnitComplete(stageId, index));
+    if (unitIndex >= 0) return { stageId, unitIndex, title: units[unitIndex].title, thai: units[unitIndex].thai };
+  }
+  const finalUnits = window.stageCurriculum?.[5] || [];
+  return { stageId: 5, unitIndex: Math.max(0, finalUnits.length - 1), title: "个人主题项目", thai: "โปรเจกต์ส่วนตัว" };
+}
+
+function openNextLearningTarget() {
+  const target = getNextLearningTarget();
+  if (target.stageId === 1) showLesson(target.unitIndex + 1);
+  else openUnit(target.stageId, target.unitIndex);
+}
+
+function renderTodayPlan() {
+  const target = getNextLearningTarget();
+  const dueWords = state.vocabulary.filter((item) => !item.dueDate || item.dueDate <= localDateKey()).length;
+  const donePractice = (state.practiceByStage[target.stageId] || []).length;
+  return `<section class="section today-plan">
+    <div class="section-heading"><div><p class="eyebrow">TODAY · วันนี้</p><h2>今天学什么</h2><p>不用自己翻目录，完成下面三件事就可以休息。</p><p class="thai">ไม่ต้องหาเองในสารบัญ ทำ 3 อย่างด้านล่างแล้วพักได้</p></div><span>约 20–30 分钟</span></div>
+    <div class="today-plan-grid">
+      <button class="today-task primary" onclick="openNextLearningTarget()"><b>1</b><span><strong>继续课程：${target.title}</strong><small>${target.thai}</small></span><em>开始 →</em></button>
+      <button class="today-task" onclick="setRoute('practice')"><b>2</b><span><strong>复习 ${dueWords} 个到期生词</strong><small>ทบทวนคำศัพท์ที่ถึงกำหนด ${dueWords} คำ</small></span><em>${dueWords ? "去复习 →" : "今日已清空 ✓"}</em></button>
+      <button class="today-task" onclick="state.stageId=${target.stageId}; setRoute('practice')"><b>3</b><span><strong>每日 10 分钟练习</strong><small>ฝึกประจำวัน 10 นาที</small></span><em>${donePractice} / 4</em></button>
+    </div>
+  </section>`;
+}
+
+function renderStandardBenchmark() {
+  const benchmark = window.levelOneBenchmark;
+  if (!benchmark) return "";
+  return `<section class="section standard-benchmark">
+    <div class="section-heading"><div><p class="eyebrow">GF 0025-2021</p><h2>${benchmark.title}</h2><p class="thai">${benchmark.thai}</p></div><span>一级前置基础 · พื้นฐานก่อนระดับ 1</span></div>
+    <div class="benchmark-layout">
+      <div class="benchmark-metrics">${benchmark.metrics.map(([name, value, thai]) => `<div><strong>${value}</strong><span>${name}</span><small>${thai}</small></div>`).join("")}</div>
+      <div class="benchmark-copy"><strong>一级常用话题</strong><p>${benchmark.topics}</p><p class="thai">${benchmark.thaiTopics}</p><div class="benchmark-note"><p>${benchmark.note}</p><p class="thai">${benchmark.thaiNote}</p></div></div>
+    </div>
+  </section>`;
+}
+
 function renderHome() {
   const next = lessons.find((item) => !state.completed.includes(item.id)) || lessons[7];
   const currentStage = getCurrentStage();
@@ -393,6 +459,8 @@ function renderHome() {
       "เรียนตามลำดับทีละขั้น: พินอิน → ตัวอักษร → ประโยค → บทสนทนา → ฟังและอ่าน",
       `<div class="today-badge"><small>当前阶段 · ช่วงปัจจุบัน</small><strong>${currentStage.number} ${currentStage.title}</strong></div>`
     )}
+    ${renderTodayPlan()}
+    ${renderStandardBenchmark()}
     <section class="section">
       <div class="section-heading">
         <div><h2>完整中文学习路线</h2><p>เส้นทางการเรียนภาษาจีนทั้งหมด</p></div>
@@ -450,10 +518,45 @@ function renderEnrichment(block, stageId = state.stageId, unitIndex = 0) {
       <div class="section-heading"><div><p class="eyebrow">本课加餐 · เนื้อหาเสริม</p><h2>${block.title}</h2><p class="thai">${block.thaiTitle}</p></div></div>
       ${block.note ? `<div class="transfer-note"><strong>泰语母语提醒</strong><p>${block.note}</p><p class="thai">${block.thaiNote}</p></div>` : ""}
       <div class="enrichment-grid">
-        ${block.items.map((item) => `<article class="enrichment-item"><button class="play-button" onclick="speakChinese('${item.zh.replace(/'/g, "")}')" aria-label="播放 ${item.zh}">▶</button><strong>${item.zh}</strong><span>${item.pinyin}</span><small>${item.thai}</small>${vocabularyButton(item, stageId, unitIndex, "enrichment")}</article>`).join("")}
+        ${block.items.map((item) => `<article class="enrichment-item"><button class="play-button" onclick="speakChinese('${item.zh.replace(/'/g, "")}')" aria-label="播放 ${item.zh}">▶</button><strong>${item.zh}</strong><span class="support-pinyin">${item.pinyin}</span><small class="support-thai">${item.thai}</small>${vocabularyButton(item, stageId, unitIndex, "enrichment")}</article>`).join("")}
       </div>
       <div class="mission-strip"><strong>马上用 · ใช้ทันที</strong><p>${block.mission}</p><p class="thai">${block.thaiMission}</p></div>
     </section>`;
+}
+
+function renderStandardLessonDepth(stageId, unitIndex) {
+  const block = window.standardLessonDepth?.[stageId]?.[unitIndex];
+  if (!block) return "";
+  return `<section class="content-section standard-depth">
+    <div class="section-heading"><div><p class="eyebrow">标准扩展 · เนื้อหาเสริมตามมาตรฐาน</p><h2>${block.focus}</h2><p class="thai">${block.thaiFocus}</p></div>${block.formula ? `<span class="grammar-formula">${block.formula}</span>` : ""}</div>
+    <div class="standard-input-list">${block.input.map((item) => `<article>
+      <button class="play-button" onclick="speakChinese('${item.zh.replace(/'/g, "")}')" aria-label="播放 ${item.zh}">▶</button>
+      <div><strong>${item.zh}</strong><span class="support-pinyin">${item.pinyin}</span><small class="support-thai">${item.thai}</small>${vocabularyButton(item, stageId, unitIndex, "standard")}</div>
+    </article>`).join("")}</div>
+    <div class="standard-task"><strong>交际任务 · ภารกิจการสื่อสาร</strong><p>${block.task}</p><p class="thai">${block.thaiTask}</p></div>
+  </section>`;
+}
+
+function renderSpiralReview(stageId, unitIndex) {
+  if (unitIndex === 0) return "";
+  const previousUnits = window.stageCurriculum?.[stageId]?.slice(Math.max(0, unitIndex - 2), unitIndex) || [];
+  const reviewItems = previousUnits.flatMap((unit) => unit.items.slice(0, 2)).slice(-4);
+  if (!reviewItems.length) return "";
+  const currentExample = window.stageCurriculum[stageId][unitIndex].examples[0]?.zh || "本课句子";
+  return `<section class="content-section spiral-review">
+    <div class="section-heading"><div><p class="eyebrow">循环复习 · ทบทวนแบบวนซ้ำ</p><h2>先带回以前学过的词</h2><p>不重新讲一遍：听、认，再把一个旧词放进今天的表达。</p><p class="thai">ไม่ต้องเรียนใหม่ทั้งหมด: ฟัง จำ แล้วนำคำเก่าหนึ่งคำมาใช้กับบทวันนี้</p></div><span>3–5 分钟</span></div>
+    <div class="review-word-row">${reviewItems.map((item) => `<button onclick="speakChinese('${item.hanzi}')"><strong>${item.hanzi}</strong><span class="support-pinyin">${item.pinyin}</span><small class="support-thai">${item.thai}</small></button>`).join("")}</div>
+    <div class="review-transfer"><strong>马上迁移</strong><p>任选一个旧词，和“${currentExample}”里的词进行替换或扩展。</p><p class="thai">เลือกคำเก่าหนึ่งคำ แล้วแทนหรือขยายคำในประโยคตัวอย่างของบทนี้</p></div>
+  </section>`;
+}
+
+function renderUnitSpecialPractice(stageId) {
+  const gameIndex = stageId <= 3 ? 14 : 15;
+  const game = games[gameIndex];
+  return `<section class="content-section special-practice">
+    <div><p class="eyebrow">专项互动 · เกมฝึกเฉพาะจุด</p><h2>${game.name}</h2><p class="thai">${game.thai}</p><p>${game.desc}</p><p class="thai">${game.thaiDesc}</p></div>
+    <button class="primary-button" onclick="openMiniGame(${gameIndex})">现在玩 →<small class="thai">เริ่มเล่น</small></button>
+  </section>`;
 }
 
 function renderMilestone(stageId, unitIndex) {
@@ -578,6 +681,8 @@ function renderUnitDetail(stageId, unitIndex) {
           <p class="thai">${unit.thaiGoal}</p>
         </div>
 
+        ${renderSupportControl()}
+
         <section class="teaching-depth">
           <div class="depth-title"><p class="eyebrow">怎么讲，不只怎么读 · อธิบายให้เข้าใจ ไม่ใช่แค่อ่านตาม</p><h2>本课讲解重点</h2><p class="thai">ประเด็นอธิบายสำคัญของบทนี้</p></div>
           <div class="depth-steps">
@@ -596,13 +701,15 @@ function renderUnitDetail(stageId, unitIndex) {
               <article class="learning-item">
                 <button class="play-button" onclick="speakChinese('${item.hanzi}')" aria-label="播放 ${item.hanzi}">▶</button>
                 <strong class="content-text">${item.hanzi}</strong>
-                <span class="pinyin-line">${item.pinyin}</span>
-                <small>${item.thai}</small>
+                <span class="pinyin-line support-pinyin">${item.pinyin}</span>
+                <small class="support-thai">${item.thai}</small>
                 ${vocabularyButton(item, stageId, unitIndex, "core")}
               </article>`).join("")}
           </div>
         </section>
+        ${renderStandardLessonDepth(stageId, unitIndex)}
         ${renderEnrichment(window.stageEnrichment?.[stageId]?.[unitIndex], stageId, unitIndex)}
+        ${renderSpiralReview(stageId, unitIndex)}
 
         ${renderEmbeddedGame(embeddedGames[0], "讲到这里就玩", { stageId, unitIndex, slot: 0 })}
 
@@ -614,12 +721,13 @@ function renderUnitDetail(stageId, unitIndex) {
             ${unit.examples.map((example) => `
               <article class="example-row">
                 <button class="play-button" onclick="speakChinese('${example.zh}')" aria-label="播放示例">▶</button>
-                <div><strong>${example.zh}</strong><span>${example.pinyin}</span><small>${example.thai}</small>${vocabularyButton(example, stageId, unitIndex, "example")}</div>
+                <div><strong>${example.zh}</strong><span class="support-pinyin">${example.pinyin}</span><small class="support-thai">${example.thai}</small>${vocabularyButton(example, stageId, unitIndex, "example")}</div>
               </article>`).join("")}
           </div>
         </section>
 
         ${renderEmbeddedGame(embeddedGames[1], "准备输出前玩", { stageId, unitIndex, slot: 1 })}
+        ${renderUnitSpecialPractice(stageId)}
 
         ${renderRelaxCorner(stageId, unitIndex)}
 
@@ -1216,6 +1324,7 @@ function renderPractice() {
 
 function render() {
   document.body.dataset.mode = state.mode;
+  document.body.dataset.support = state.supportLevel;
   document.querySelectorAll("[data-mode]").forEach((button) => button.classList.toggle("active", button.dataset.mode === state.mode));
   if (state.route === "home") main.innerHTML = renderHome();
   if (state.route === "lessons") main.innerHTML = renderLessons();
@@ -1355,7 +1464,7 @@ dialog.addEventListener("click", (event) => {
 });
 
 // ===== 在线可玩小游戏（v3/v6）=====
-const playSession = { gameId: -1, index: 0, correct: 0, picked: [] };
+const playSession = { gameId: -1, index: 0, correct: 0, picked: [], pairChoice: null, matchedPairs: [], pairLeftOrder: [], pairRightOrder: [] };
 
 function shuffled(arr) {
   const copy = arr.slice();
@@ -1373,6 +1482,10 @@ function openMiniGame(gameId) {
   playSession.index = 0;
   playSession.correct = 0;
   playSession.picked = [];
+  playSession.pairChoice = null;
+  playSession.matchedPairs = [];
+  playSession.pairLeftOrder = lib.type === "pair" ? shuffled(lib.pairs.map((_, index) => index)) : [];
+  playSession.pairRightOrder = lib.type === "pair" ? shuffled(lib.pairs.map((_, index) => index)) : [];
   dialogContent.innerHTML = `
     <p class="eyebrow">在线游戏 · เกมออนไลน์</p>
     <h2>${lib.title}</h2>
@@ -1386,6 +1499,10 @@ function openMiniGame(gameId) {
 
 function renderPlayableQuestion() {
   const lib = window.miniGameLibs[window.playableGames[playSession.gameId]];
+  if (lib.type === "pair") {
+    renderPairGame();
+    return;
+  }
   const q = lib.pool[playSession.index % lib.pool.length];
   const panel = document.querySelector("#playable-panel");
   if (!panel) return;
@@ -1415,6 +1532,50 @@ function renderPlayableQuestion() {
       ${options.map((oi) => `<button onclick="answerPlayable(${oi})">${q.options[oi]}</button>`).join("")}
     </div>`;
   if (q.type === "listen") playMiniAudio();
+}
+
+function renderPairGame(feedback = "先选中文，再选泰语 · เลือกภาษาจีนก่อน แล้วเลือกภาษาไทย") {
+  const lib = window.miniGameLibs[window.playableGames[playSession.gameId]];
+  const panel = document.querySelector("#playable-panel");
+  if (!panel) return;
+  const leftOrder = playSession.pairLeftOrder;
+  const rightOrder = playSession.pairRightOrder;
+  panel.innerHTML = `
+    <div class="mini-game-status"><b>已配对 ${playSession.matchedPairs.length} / ${lib.pairs.length}</b><span>${feedback}</span></div>
+    <div class="pair-board">
+      <div>${leftOrder.map((index) => `<button class="pair-chip ${playSession.matchedPairs.includes(index) ? "matched" : ""}" data-pair-side="left" data-pair-index="${index}" onclick="selectPair('left', ${index})">${lib.pairs[index].left}</button>`).join("")}</div>
+      <div>${rightOrder.map((index) => `<button class="pair-chip ${playSession.matchedPairs.includes(index) ? "matched" : ""}" data-pair-side="right" data-pair-index="${index}" onclick="selectPair('right', ${index})">${lib.pairs[index].right}</button>`).join("")}</div>
+    </div>`;
+  if (playSession.pairChoice) {
+    const selected = panel.querySelector(`[data-pair-side="${playSession.pairChoice.side}"][data-pair-index="${playSession.pairChoice.index}"]`);
+    selected?.classList.add("selected");
+  }
+}
+
+function selectPair(side, index) {
+  if (playSession.matchedPairs.includes(index)) return;
+  const first = playSession.pairChoice;
+  if (!first || first.side === side) {
+    playSession.pairChoice = { side, index };
+    renderPairGame();
+    return;
+  }
+  if (first.index !== index) {
+    playSession.pairChoice = null;
+    renderPairGame("还不是一对，再看一次 · ยังไม่ใช่คู่ ลองดูอีกครั้ง");
+    return;
+  }
+  const lib = window.miniGameLibs[window.playableGames[playSession.gameId]];
+  playSession.matchedPairs.push(index);
+  playSession.correct += 1;
+  playSession.pairChoice = null;
+  speakChinese(lib.pairs[index].speak);
+  if (playSession.matchedPairs.length === lib.pairs.length) {
+    const panel = document.querySelector("#playable-panel");
+    panel.innerHTML = `<div class="mini-game-complete"><b>全部配对完成！</b><span>จับคู่ครบแล้ว</span><p>再听一遍最容易忘的两个词，然后停在成功这里。</p><p class="thai">ฟัง 2 คำที่จำยากที่สุดอีกครั้ง แล้วจบด้วยความสำเร็จ</p></div><div class="mini-game-actions"><button class="secondary-button" onclick="openMiniGame(${playSession.gameId})">再玩一次</button><button class="primary-button" onclick="document.querySelector('#dialog').close()">完成</button></div>`;
+    return;
+  }
+  renderPairGame("配对成功，听一遍中文 · จับคู่ถูกแล้ว ฟังเสียงจีนหนึ่งครั้ง");
 }
 
 function playMiniAudio() {
