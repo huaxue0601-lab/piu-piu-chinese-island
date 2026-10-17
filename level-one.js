@@ -165,7 +165,10 @@ window.getLevelOneInventory = function getLevelOneInventory() {
     lesson.words.forEach((word) => {
       if (!wordMap.has(word.zh)) wordMap.set(word.zh, { ...word, firstLesson: lessonIndex + 1, reviews: 0 });
       for (const char of word.zh.match(/[\u3400-\u9fff]/g) || []) characterSet.add(char);
-      word.pinyin.toLowerCase().split(/\s+/).filter(Boolean).forEach((part) => syllableSet.add(part.replace(/[^a-züǖǘǚǜāáǎàēéěèīíǐìōóǒòūúǔùńňǹ]+/g, "")));
+      word.pinyin.toLowerCase().split(/\s+/).filter(Boolean).forEach((part) => {
+        const normalized = part.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ü/g, "v").replace(/[^a-zv]+/g, "");
+        if (normalized) syllableSet.add(normalized);
+      });
     });
     lesson.review.forEach((word) => { if (wordMap.has(word)) wordMap.get(word).reviews += 1; });
     lesson.grammar.forEach((item) => grammarMap.set(item.name, { ...item, firstLesson: lessonIndex + 1 }));

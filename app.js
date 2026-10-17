@@ -458,16 +458,16 @@ function renderLevelOneCoverage(compact = false) {
   const course = window.levelOneCourse;
   const inventory = window.getLevelOneInventory();
   const metrics = [
-    ["音节", "พยางค์", inventory.syllables, course.targets.syllables],
-    ["汉字", "ตัวอักษรจีน", inventory.characters, course.targets.characters],
-    ["词语", "คำศัพท์", inventory.words, course.targets.words],
-    ["语法点", "ไวยากรณ์", inventory.grammar, course.targets.grammar],
+    ["课程", "บทเรียน", course.lessons.length, 32],
+    ["汉字安排量", "จำนวนตัวอักษรที่จัดไว้", inventory.characters, course.targets.characters],
+    ["明确教学词", "คำศัพท์ที่สอนชัดเจน", inventory.words, course.targets.words],
+    ["语法支架", "โครงช่วยไวยากรณ์", inventory.grammar, course.targets.grammar],
   ];
   return `<section class="${compact ? "level-one-coverage compact" : "section level-one-coverage"}">
     <div class="section-heading"><div><p class="eyebrow">LEVEL 1 LEDGER · บัญชีระดับ 1</p><h2>已建内容台账</h2><p>只统计正式一级课程当前已加入的内容，不把 A0 接触过的内容重复算作达标。</p><p class="thai">นับเฉพาะเนื้อหาที่เพิ่มในหลักสูตรระดับ 1 และไม่ถือว่าเนื้อหา A0 ที่เคยเห็นคือผ่านแล้ว</p></div><span>首单元 · หน่วยแรก</span></div>
     <div class="coverage-grid">${metrics.map(([zh, thai, value, target]) => `<article><div><strong>${value}</strong><span>/ ${target}</span></div><b>${zh}</b><small>${thai}</small><progress value="${value}" max="${target}"></progress></article>`).join("")}</div>
-    <p class="coverage-warning">当前数字表示“课程中已经安排”，不是 Piu 已经掌握；掌握状态以逐课完成和复习表现为准。</p>
-    <p class="thai coverage-warning">ตัวเลขหมายถึง “จัดไว้ในหลักสูตรแล้ว” ไม่ได้แปลว่า Piu เชี่ยวชาญแล้ว ต้องดูจากการจบบทและผลทบทวน</p>
+    <p class="coverage-warning">当前数字是课程安排量，并非官方清单逐项对齐，也不是 Piu 已经掌握。官方 269 音节仍保留在上方参照区，待建立逐音节映射后再统计，不用整词拼音虚报覆盖。</p>
+    <p class="thai coverage-warning">ตัวเลขคือปริมาณที่จัดไว้ในหลักสูตร ยังไม่ใช่การเทียบรายการทางการทีละข้อ และไม่ได้แปลว่า Piu เชี่ยวชาญแล้ว เกณฑ์ 269 พยางค์ยังอยู่ในส่วนอ้างอิงด้านบน และจะนับเมื่อมีการจับคู่ทีละพยางค์อย่างถูกต้อง</p>
   </section>`;
 }
 
@@ -475,10 +475,21 @@ function renderLevelOneCatalog() {
   const course = window.levelOneCourse;
   return `${pageHead("FORMAL LEVEL 1", course.title, course.statusNote, course.thaiStatusNote)}
     ${renderLevelOneCoverage()}
-    <section class="section">
-      <div class="section-heading"><div><h2>${course.unitTitle}</h2><p class="thai">${course.thaiUnitTitle}</p></div><span>${state.levelOneCompleted.length} / ${course.lessons.length} 已完成 · เรียนแล้ว</span></div>
-      <div class="formal-unit-grid">${course.lessons.map((lesson, index) => `<button class="formal-unit-card ${isLevelOneComplete(index) ? "completed" : ""}" onclick="openLevelOneLesson(${index})"><span>第 ${index + 1} 课 · บทที่ ${index + 1}</span><h3>${lesson.title}</h3><p class="thai">${lesson.thaiTitle}</p><p>${lesson.goal}</p><p class="thai">${lesson.thaiGoal}</p><small>${isLevelOneComplete(index) ? "✓ 已完成 · เรียนแล้ว" : "进入完整课程 → เข้าสู่บทเรียน"}</small></button>`).join("")}</div>
+    <section class="section level-one-roadmap">
+      <div class="section-heading"><div><h2>8 个正式单元</h2><p class="thai">8 หน่วยอย่างเป็นระบบ</p></div><span>${state.levelOneCompleted.length} / ${course.lessons.length} 已完成 · เรียนแล้ว</span></div>
+      <nav class="unit-jump-nav" aria-label="一级单元目录">${course.units.map((unit, unitIndex) => `<a href="#${unit.id}"><b>${String(unitIndex + 1).padStart(2, "0")}</b><span>${unit.title.replace(/^单元[一二三四五六七八]：/, "")}</span><small>${unit.thaiTitle}</small></a>`).join("")}</nav>
     </section>
+    ${course.units.map((unit, unitIndex) => {
+      const offset = course.units.slice(0, unitIndex).reduce((total, item) => total + item.lessons.length, 0);
+      const completed = unit.lessons.filter((_, lessonIndex) => isLevelOneComplete(offset + lessonIndex)).length;
+      return `<section class="section formal-unit-section" id="${unit.id}">
+        <div class="section-heading"><div><p class="eyebrow">UNIT ${String(unitIndex + 1).padStart(2, "0")}</p><h2>${unit.title}</h2><p class="thai">${unit.thaiTitle}</p><p>${unit.description}</p><p class="thai">${unit.thaiDescription}</p></div><span>${completed} / ${unit.lessons.length} · เรียนแล้ว</span></div>
+        <div class="formal-unit-grid">${unit.lessons.map((lesson, lessonIndex) => {
+          const globalIndex = offset + lessonIndex;
+          return `<button class="formal-unit-card ${isLevelOneComplete(globalIndex) ? "completed" : ""}" onclick="openLevelOneLesson(${globalIndex})"><span>第 ${lessonIndex + 1} 课 · บทที่ ${lessonIndex + 1}</span><h3>${lesson.title}</h3><p class="thai">${lesson.thaiTitle}</p><p>${lesson.goal}</p><p class="thai">${lesson.thaiGoal}</p><small>${isLevelOneComplete(globalIndex) ? "✓ 已完成 · เรียนแล้ว" : "进入完整课程 → เข้าสู่บทเรียน"}</small></button>`;
+        }).join("")}</div>
+      </section>`;
+    }).join("")}
     <section class="section ledger-detail teacher-only"><div class="section-heading"><div><h2>Hua 的备课台账</h2><p class="thai">บัญชีเตรียมสอนสำหรับ Hua</p></div></div>
       <div class="ledger-table-wrap"><table><thead><tr><th>词语<br><small>คำศัพท์</small></th><th>拼音<br><small>พินอิน</small></th><th>泰语<br><small>ภาษาไทย</small></th><th>初次出现<br><small>ปรากฏครั้งแรก</small></th><th>后续复现<br><small>ทบทวนภายหลัง</small></th></tr></thead><tbody>${window.getLevelOneInventory().wordItems.map((item) => `<tr><td>${item.zh}</td><td>${item.pinyin}</td><td>${item.thai}</td><td>第 ${item.firstLesson} 课 · บท ${item.firstLesson}</td><td>${item.reviews} 次 · ${item.reviews} ครั้ง</td></tr>`).join("")}</tbody></table></div>
     </section>`;
@@ -498,7 +509,7 @@ function renderLevelOneLesson(index) {
   const lesson = course.lessons[index];
   const complete = isLevelOneComplete(index);
   return `<div class="lesson-layout formal-lesson-layout">
-    <aside class="lesson-sidebar"><button class="text-button" onclick="setRoute('level-one')">← 返回一级目录 · กลับสารบัญระดับ 1</button><p class="eyebrow">${course.unitTitle} · 第 ${index + 1} 课 · บทที่ ${index + 1}</p><h1>${lesson.title}</h1><p class="thai">${lesson.thaiTitle}</p><div class="meta-list"><div class="meta-item"><small>本课容量 · เนื้อหาบทนี้</small><strong>${lesson.words.length} 词 · ${lesson.grammar.length} 语法 · ${lesson.examples.length} 例句</strong><span class="thai">${lesson.words.length} คำ · ${lesson.grammar.length} ไวยากรณ์ · ${lesson.examples.length} ตัวอย่าง</span></div><div class="meta-item"><small>完成标准 · เกณฑ์ผ่าน</small><strong>完成对话、听读和真实任务</strong><span class="thai">ทำบทสนทนา การฟังอ่าน และภารกิจจริงให้ครบ</span></div></div></aside>
+    <aside class="lesson-sidebar"><button class="text-button" onclick="setRoute('level-one')">← 返回一级目录 · กลับสารบัญระดับ 1</button><p class="eyebrow">${lesson.unitTitle} · 第 ${lesson.lessonIndex + 1} 课 · บทที่ ${lesson.lessonIndex + 1}</p><h1>${lesson.title}</h1><p class="thai">${lesson.thaiTitle}</p><div class="meta-list"><div class="meta-item"><small>本课容量 · เนื้อหาบทนี้</small><strong>${lesson.words.length} 词 · ${lesson.grammar.length} 语法 · ${lesson.examples.length} 例句</strong><span class="thai">${lesson.words.length} คำ · ${lesson.grammar.length} ไวยากรณ์ · ${lesson.examples.length} ตัวอย่าง</span></div><div class="meta-item"><small>完成标准 · เกณฑ์ผ่าน</small><strong>完成对话、听读和真实任务</strong><span class="thai">ทำบทสนทนา การฟังอ่าน และภารกิจจริงให้ครบ</span></div></div></aside>
     <article class="lesson-content">
       <div class="outcome-band"><p class="eyebrow">本课目标 · เป้าหมาย</p><h2>${lesson.goal}</h2><p class="thai">${lesson.thaiGoal}</p></div>
       ${renderSupportControl()}

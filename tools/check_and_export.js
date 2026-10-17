@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Piu Piu 中文岛 · 自检 + 一键打包（v12）
+// Piu Piu 中文岛 · 自检 + 一键打包（v13）
 // 用法：node tools/check_and_export.js [--export]  （--export 打包 zip 到上级目录）
 const fs = require("fs");
 const path = require("path");
@@ -26,6 +26,7 @@ const files = [
   "standards-content.js",
   "example-bank.js",
   "level-one.js",
+  "level-one-more.js",
   "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js",
   "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "assets/picture-talk/s4-u1.jpg",
@@ -48,15 +49,17 @@ const milestones = read("milestones.js") || "";
 const store = read("learning-store.js") || "";
 const sw = read("sw.js") || "";
 const levelOne = read("level-one.js") || "";
+const levelOneMore = read("level-one-more.js") || "";
 
 // —— 脚本版本参（v4 踩过的缓存坑）——
 ["styles.css", "pinyin-data.js", "content.js", "standards-content.js", "example-bank.js", "thai-translations.js", "materials.js", "culture.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js"].forEach((s) => {
-  ok(html.includes(`${s}?v=12`), `index.html 未带 v12 版本参 ${s}`);
+  ok(html.includes(`${s}?v=13`), `index.html 未带 v13 版本参 ${s}`);
 });
-ok(html.includes("miniGameLibs.js?v=12"), "miniGameLibs 未带 v12 版本参");
-ok(html.includes("app.js?v=12"), "app.js 未带 v12 内容版本参");
-ok(html.includes("life.js?v=12"), "life.js 未带 v12 内容版本参");
-ok(html.includes("level-one.js?v=12"), "一级课程未带 v12 版本参");
+ok(html.includes("miniGameLibs.js?v=13"), "miniGameLibs 未带 v13 版本参");
+ok(html.includes("app.js?v=13"), "app.js 未带 v13 内容版本参");
+ok(html.includes("life.js?v=13"), "life.js 未带 v13 内容版本参");
+ok(html.includes("level-one.js?v=13"), "一级课程未带 v13 版本参");
+ok(html.includes("level-one-more.js?v=13"), "一级扩展课程未带 v13 版本参");
 
 // —— 游戏引擎（v3/v6）——
 ["toneLift", "breath", "flatCurly", "fish", "measure", "order", "wordMatch", "lifeReply"].forEach((g) => ok(games.includes(`${g}:`), `miniGameLibs 缺少 ${g}`));
@@ -81,7 +84,7 @@ ok(fs.existsSync(path.join(ROOT, "manifest.webmanifest")), "manifest 缺失");
 // —— 输出型材料（v4/v6/v7）——
 ["dialogue", "reading", "pictureTalk", "menu", "numbers", "weather", "chat", "skit", "listening", "diary", "video"].forEach((k) => ok(mats.includes(k), `materials.js 缺 ${k}`));
 ["renderStageMaterials", "answerReading", "answerListening"].forEach((fn) => ok(app.includes(`function ${fn}`), `材料渲染缺 ${fn}`));
-ok(html.includes("materials.js?v=12"), "materials 未加载");
+ok(html.includes("materials.js?v=13"), "materials 未加载");
 
 // —— 文化角 / 放松角（v5/v7）——
 ["origins", "idioms", "poems", "fables", "facts", "slangs", "slots"].forEach((k) => ok(cult.includes(k), `culture.js 缺 ${k}`));
@@ -160,7 +163,7 @@ ok(app.includes("current.length < 2"), "录音重点未限制最多两项");
 ok(milestones.includes("window.stageMilestones"), "阶段任务数据缺失");
 ok(Object.keys(JSON.parse(JSON.stringify((milestones.match(/\"[1-5]-\d+\"/g) || [])))).length >= 9, "阶段任务数量不足");
 ok(app.includes("function renderMilestone") && app.includes("function toggleMilestoneTask"), "阶段任务交互缺失");
-ok(sw.includes("learning-store.js?v=12") && sw.includes("milestones.js?v=12"), "离线缓存未包含 v12 文件");
+ok(sw.includes("learning-store.js?v=13") && sw.includes("milestones.js?v=13"), "离线缓存未包含 v13 文件");
 
 // —— 今日学习 / 三级提示 / 循环复习（v11）——
 ["getNextLearningTarget", "renderTodayPlan", "renderSupportControl", "setSupportLevel", "renderSpiralReview", "renderUnitSpecialPractice", "renderPairGame", "selectPair"].forEach((fn) => ok(app.includes(`function ${fn}`), `v11 学习流程缺 ${fn}`));
@@ -177,12 +180,12 @@ ok(standards.includes("window.standardLessonDepth"), "缺标准课程扩展数�
 ok((standards.match(/standardLine\(/g) || []).length >= 100, "标准扩展例句不足 100 条");
 ok((standards.match(/thaiTask:/g) || []).length === 36, "36 课交际任务泰语未补齐");
 ["renderStandardBenchmark", "renderStandardLessonDepth"].forEach((fn) => ok(app.includes(`function ${fn}`), `标准内容渲染缺 ${fn}`));
-ok(sw.includes("standards-content.js?v=12"), "离线缓存缺标准扩展内容");
+ok(sw.includes("standards-content.js?v=13"), "离线缓存缺标准扩展内容");
 
 // —— 逐课示范例库（v11）——
 ok(app.includes("function renderLessonExampleBank"), "示范例库渲染缺失");
 ok(app.includes("本课示范例库 · ตัวอย่างประจำบท"), "示范例库缺中泰标题");
-ok(sw.includes("example-bank.js?v=12"), "离线缓存缺 v12 示范例库");
+ok(sw.includes("example-bank.js?v=13"), "离线缓存缺 v13 示范例库");
 try {
   const sandbox = { window: {} };
   vm.runInNewContext(exampleBanks, sandbox);
@@ -197,36 +200,51 @@ try {
   ERRORS.push(`示范例库无法读取：${error.message}`);
 }
 
-// —— 正式一级首单元（v12）——
+// —— 正式一级 8 单元（v13）——
 ok(levelOne.includes("window.levelOneCourse"), "缺正式一级课程数据");
 ok(levelOne.includes("window.getLevelOneInventory"), "缺一级课程内容台账");
 ["renderLevelOneCatalog", "renderLevelOneCoverage", "renderLevelOneLesson", "answerLevelOneGame", "toggleLevelOneComplete"].forEach((fn) => ok(app.includes(`function ${fn}`), `一级课程缺函数 ${fn}`));
-ok(sw.includes("level-one.js?v=12"), "离线缓存缺一级课程");
+ok(sw.includes("level-one.js?v=13"), "离线缓存缺一级课程");
+ok(sw.includes("level-one-more.js?v=13"), "离线缓存缺一级扩展课程");
 try {
   const sandbox = { window: {} };
   vm.runInNewContext(levelOne, sandbox);
+  vm.runInNewContext(levelOneMore, sandbox);
   const course = sandbox.window.levelOneCourse;
-  ok(course.lessons.length === 4, `一级首单元应为 4 课，实际 ${course.lessons.length}`);
+  ok(course.units.length === 8, `一级课程应为 8 单元，实际 ${course.units.length}`);
+  ok(course.lessons.length === 32, `一级课程应为 32 课，实际 ${course.lessons.length}`);
+  ok(course.units.every((unit) => unit.title && unit.thaiTitle && unit.description && unit.thaiDescription), "一级单元缺中泰说明");
+  ok(course.units.every((unit) => unit.lessons.length === 4), "一级单元存在不是 4 课的情况");
+  ok(new Set(course.lessons.map((lesson) => lesson.id)).size === course.lessons.length, "一级课程 ID 重复");
+  const learnedWords = new Set();
   course.lessons.forEach((lesson, index) => {
-    ok(lesson.words.length >= 8 && lesson.words.length <= 12, `一级第 ${index + 1} 课新词数量不在 8–12`);
-    ok(lesson.grammar.length <= 2, `一级第 ${index + 1} 课语法超过 2 点`);
-    ok(lesson.examples.length >= 8, `一级第 ${index + 1} 课例句不足 8 条`);
+    ok(lesson.words.length === 10, `一级第 ${index + 1} 课新词应为 10 个`);
+    ok(lesson.grammar.length === 2, `一级第 ${index + 1} 课语法应为 2 点`);
+    ok(lesson.examples.length === 8, `一级第 ${index + 1} 课例句应为 8 条`);
     ok(lesson.dialogues.length === 2, `一级第 ${index + 1} 课缺两段对话`);
     ok(lesson.words.every((item) => item.zh && item.pinyin && item.thai), `一级第 ${index + 1} 课词汇缺中拼泰`);
+    ok(new Set(lesson.words.map((item) => item.zh)).size === lesson.words.length, `一级第 ${index + 1} 课内部词汇重复`);
     ok(lesson.examples.every((item) => item.zh && item.pinyin && item.thai), `一级第 ${index + 1} 课例句缺中拼泰`);
+    ok(lesson.words.every((item) => /[\u0e00-\u0e7f]/.test(item.thai)), `一级第 ${index + 1} 课词汇泰语字段异常`);
+    ok(lesson.examples.some((item) => /[\u0e00-\u0e7f]/.test(item.thai)), `一级第 ${index + 1} 课例句未包含泰语说明`);
     ok(lesson.dialogues.flatMap((item) => item.lines).every((item) => item.zh && item.pinyin && item.thai), `一级第 ${index + 1} 课对话缺中拼泰`);
     ok(lesson.listening.zh && lesson.listening.pinyin && lesson.listening.thai, `一级第 ${index + 1} 课听力缺中拼泰`);
     ok(lesson.reading.zh && lesson.reading.pinyin && lesson.reading.thai, `一级第 ${index + 1} 课短文缺中拼泰`);
     ok(lesson.game.options[lesson.game.answer], `一级第 ${index + 1} 课游戏答案无效`);
+    ok(lesson.task && lesson.thaiTask, `一级第 ${index + 1} 课真实任务缺中泰说明`);
+    ok(lesson.teacherScript.length === 3 && lesson.teacherScript.every((item) => item[0] && item[1]), `一级第 ${index + 1} 课教师脚本缺中泰说明`);
+    ok((lesson.reading.zh.match(/[\u3400-\u9fff]/g) || []).length >= 40, `一级第 ${index + 1} 课短文不足 40 字`);
+    ok(lesson.review.every((word) => learnedWords.has(word)), `一级第 ${index + 1} 课循环复习引用了尚未学过的词`);
+    lesson.words.forEach((item) => learnedWords.add(item.zh));
   });
   const inventory = sandbox.window.getLevelOneInventory();
-  ok(inventory.words > 30 && inventory.grammar === 8, "一级台账统计异常");
+  ok(inventory.words >= 300 && inventory.characters >= 300 && inventory.grammar >= 48, "一级台账统计异常");
 } catch (error) {
   ERRORS.push(`正式一级课程无法读取：${error.message}`);
 }
 
 // —— 语法（node --check）——
-["app.js", "content.js", "standards-content.js", "example-bank.js", "level-one.js", "pinyin-data.js", "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js", "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js"].forEach((f) => {
+["app.js", "content.js", "standards-content.js", "example-bank.js", "level-one.js", "level-one-more.js", "pinyin-data.js", "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js", "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js"].forEach((f) => {
   try { execSync(`node --check "${path.join(ROOT, f)}"`, { stdio: "pipe" }); pass += 1; }
   catch { ERRORS.push(`语法错误 ${f}`); }
 });
@@ -240,7 +258,7 @@ if (NOTES.length) { NOTES.forEach((n) => console.log(`  ! ${n}`)); }
 
 // —— 导出（可选）——
 if (process.argv.includes("--export")) {
-  const outName = `Piu-Piu-Chinese-Island-v12-2026-10-17.zip`;
+  const outName = `Piu-Piu-Chinese-Island-v13-2026-10-17.zip`;
   const outPath = path.join(ROOT, "..", outName);
   try {
     execSync(`cd "${ROOT}" && zip -rq "${outPath}" . -x "*.DS_Store" -x ".git/*" -x "node_modules/*"`);
