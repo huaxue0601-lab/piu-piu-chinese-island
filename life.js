@@ -1,0 +1,112 @@
+// 「我的生活」独立页：Piu 生活中真正会用的中文
+// 5 个主题：家 / Piu 的饮食喜好 / 旅行 / 工作 / 关于 Piu
+
+window.lifeContent = {
+  intro: "这些是 Piu 生活中真正会用到的中文。每个主题都先听，再说，再做一件小事。",
+  thaiIntro: "นี่คือภาษาจีนที่ Piu ใช้จริงในชีวิตประจำวัน แต่ละหัวข้อ: ฟังก่อน แล้วพูด แล้วทำงานเล็ก ๆ หนึ่งอย่าง",
+  topics: [
+    {
+      id: "home", icon: "🏠", title: "我的家", thai: "บ้านของฉัน",
+      desc: "介绍家和家人，说说每天在家做什么。", thaiDesc: "แนะนำบ้านและครอบครัว บอกว่าทำอะไรที่บ้านทุกวัน",
+      words: [
+        { zh: "家", pinyin: "jiā", thai: "บ้าน" },
+        { zh: "房间", pinyin: "fángjiān", thai: "ห้อง" },
+        { zh: "厨房", pinyin: "chúfáng", thai: "ห้องครัว" },
+        { zh: "妈妈", pinyin: "māma", thai: "แม่" },
+        { zh: "爸爸", pinyin: "bàba", thai: "พ่อ" },
+        { zh: "在家", pinyin: "zài jiā", thai: "อยู่บ้าน" },
+      ],
+      dialogue: [
+        { zh: "你家有几口人？", pinyin: "nǐ jiā yǒu jǐ kǒu rén", thai: "บ้านคุณมีกี่คน" },
+        { zh: "我家有四口人：爸爸、妈妈、我和哥哥。", pinyin: "wǒ jiā yǒu sì kǒu rén: bàba, māma, wǒ hé gēge", thai: "บ้านฉันมี 4 คน: พ่อ แม่ ฉัน และพี่ชาย" },
+        { zh: "你周末在家做什么？", pinyin: "nǐ zhōumò zài jiā zuò shénme", thai: "สุดสัปดาห์คุณอยู่บ้านทำอะไร" },
+        { zh: "我喜欢在家做饭。", pinyin: "wǒ xǐhuan zài jiā zuòfàn", thai: "ฉันชอบทำอาหารที่บ้าน" },
+      ],
+      task: "拍一张家里的照片，用中文介绍：这是……",
+      thaiTask: "ถ่ายรูปบ้าน แล้วแนะนำเป็นภาษาจีน: นี่คือ...",
+    },
+    {
+      id: "food", icon: "🍜", title: "我爱吃的", thai: "อาหารที่ฉันชอบ",
+      desc: "用 Piu 真正喜欢和不喜欢的食物练习表达与点餐。", thaiDesc: "ฝึกพูดและสั่งอาหารจากสิ่งที่ Piu ชอบและไม่ชอบจริง ๆ",
+      words: [
+        { zh: "橙子", pinyin: "chéngzi", thai: "ส้ม" },
+        { zh: "苹果", pinyin: "píngguǒ", thai: "แอปเปิล" },
+        { zh: "菠萝", pinyin: "bōluó", thai: "สับปะรด" },
+        { zh: "草莓", pinyin: "cǎoméi", thai: "สตรอว์เบอร์รี" },
+        { zh: "甜瓜", pinyin: "tiánguā", thai: "เมลอน" },
+        { zh: "番石榴", pinyin: "fānshíliu", thai: "ฝรั่ง" },
+        { zh: "板栗", pinyin: "bǎnlì", thai: "เกาลัด" },
+        { zh: "泰式炭火烤肉锅", pinyin: "Tàishì tànhuǒ kǎoròuguō", thai: "หมูกระทะเตาถ่านแบบไทย" },
+      ],
+      dialogue: [
+        { zh: "你喜欢吃什么？", pinyin: "nǐ xǐhuan chī shénme", thai: "คุณชอบกินอะไร" },
+        { zh: "我喜欢橙子、苹果、菠萝、草莓、甜瓜和番石榴。", pinyin: "wǒ xǐhuan chéngzi, píngguǒ, bōluó, cǎoméi, tiánguā hé fānshíliu", thai: "ฉันชอบส้ม แอปเปิล สับปะรด สตรอว์เบอร์รี เมลอน และฝรั่ง" },
+        { zh: "我喜欢番石榴，但是不喜欢番石榴汁。", pinyin: "wǒ xǐhuan fānshíliu, dànshì bù xǐhuan fānshíliu zhī", thai: "ฉันชอบฝรั่ง แต่ไม่ชอบน้ำฝรั่งหรือเครื่องดื่มรสฝรั่ง" },
+        { zh: "我不喜欢榴莲，也不喜欢开心果口味。", pinyin: "wǒ bù xǐhuan liúlián, yě bù xǐhuan kāixīnguǒ kǒuwèi", thai: "ฉันไม่ชอบทุเรียน และไม่ชอบรสพิสตาชิโอ" },
+        { zh: "我喜欢板栗，也喜欢吃泰式炭火烤肉锅。", pinyin: "wǒ xǐhuan bǎnlì, yě xǐhuan chī Tàishì tànhuǒ kǎoròuguō", thai: "ฉันชอบเกาลัด และชอบกินหมูกระทะเตาถ่านแบบไทย" },
+      ],
+      task: "不看拼音，说三样喜欢的食物和两样不喜欢的口味，再问 Hua 喜欢什么。",
+      thaiTask: "ไม่ดูพินอิน บอกอาหารที่ชอบ 3 อย่างและรสชาติที่ไม่ชอบ 2 อย่าง แล้วถาม Hua ว่าชอบอะไร",
+    },
+    {
+      id: "travel", icon: "✈️", title: "去旅行", thai: "ไปเที่ยว",
+      desc: "问路、买票、住酒店。", thaiDesc: "ถามทาง ซื้อตั๋ว เช็คอินโรงแรม",
+      words: [
+        { zh: "机场", pinyin: "jīchǎng", thai: "สนามบิน" },
+        { zh: "火车站", pinyin: "huǒchēzhàn", thai: "สถานีรถไฟ" },
+        { zh: "酒店", pinyin: "jiǔdiàn", thai: "โรงแรม" },
+        { zh: "票", pinyin: "piào", thai: "ตั๋ว" },
+        { zh: "地图", pinyin: "dìtú", thai: "แผนที่" },
+        { zh: "远", pinyin: "yuǎn", thai: "ไกล" },
+      ],
+      dialogue: [
+        { zh: "请问，地铁站在哪儿？", pinyin: "qǐngwèn, dìtiězhàn zài nǎr", thai: "ขอโทษค่ะ สถานีรถไฟฟ้าอยู่ที่ไหน" },
+        { zh: "往前走，然后左转。", pinyin: "wǎng qián zǒu, ránhòu zuǒzhuǎn", thai: "เดินตรงไป แล้วเลี้ยวซ้าย" },
+        { zh: "离这里远吗？", pinyin: "lí zhèlǐ yuǎn ma", thai: "ไกลจากที่นี่ไหม" },
+        { zh: "不远，五分钟就到了。", pinyin: "bù yuǎn, wǔ fēnzhōng jiù dào le", thai: "ไม่ไกล ห้านาทีก็ถึง" },
+      ],
+      task: "在地图上找一条路线，用中文说出：从……到……怎么走。",
+      thaiTask: "หาเส้นทางในแผนที่ แล้วบอกเป็นภาษาจีน: จาก...ไป...ไปอย่างไร",
+    },
+    {
+      id: "work", icon: "💼", title: "工作", thai: "การทำงาน",
+      desc: "说工作、进度，还有请假。", thaiDesc: "พูดเรื่องงาน ความคืบหน้า และขอลา",
+      words: [
+        { zh: "工作", pinyin: "gōngzuò", thai: "ทำงาน" },
+        { zh: "开会", pinyin: "kāihuì", thai: "ประชุม" },
+        { zh: "邮件", pinyin: "yóujiàn", thai: "อีเมล" },
+        { zh: "加班", pinyin: "jiābān", thai: "ทำงานล่วงเวลา" },
+        { zh: "请假", pinyin: "qǐngjià", thai: "ขอลา" },
+        { zh: "忙", pinyin: "máng", thai: "ยุ่ง" },
+      ],
+      dialogue: [
+        { zh: "你今天忙吗？", pinyin: "nǐ jīntiān máng ma", thai: "วันนี้ยุ่งไหม" },
+        { zh: "有点忙，下午要开会。", pinyin: "yǒudiǎn máng, xiàwǔ yào kāihuì", thai: "ยุ่งนิดหน่อย บ่ายมีประชุม" },
+        { zh: "你什么时候下班？", pinyin: "nǐ shénme shíhou xiàbān", thai: "เลิกงานเมื่อไร" },
+        { zh: "今天可能要加班。", pinyin: "jīntiān kěnéng yào jiābān", thai: "วันนี้อาจต้องทำงานล่วงเวลา" },
+      ],
+      task: "用中文写一句话，告诉同事你什么时候有空。",
+      thaiTask: "เขียนประโยคภาษาจีนหนึ่งประโยค บอกเพื่อนร่วมงานว่าคุณว่างเมื่อไร",
+    },
+    {
+      id: "piu", icon: "P", title: "关于 Piu", thai: "เกี่ยวกับ Piu",
+      desc: "用中文介绍 Piu 的基本信息和个人喜好。", thaiDesc: "แนะนำข้อมูลพื้นฐานและสิ่งที่ Piu ชอบเป็นภาษาจีน",
+      words: [
+        { zh: "射手座", pinyin: "shèshǒuzuò", thai: "ราศีธนู" },
+        { zh: "十二月二十日", pinyin: "shí'èr yuè èrshí rì", thai: "วันที่ 20 ธันวาคม" },
+        { zh: "三十九码", pinyin: "sānshíjiǔ mǎ", thai: "รองเท้าเบอร์ 39" },
+        { zh: "ENTJ 人格", pinyin: "ENTJ réngé", thai: "บุคลิกภาพ ENTJ" },
+        { zh: "捏捏", pinyin: "niēnie", thai: "สกุชชี่ / ของเล่นบีบคลายเครียด" },
+        { zh: "水润口红", pinyin: "shuǐrùn kǒuhóng", thai: "ลิปสติกเนื้อฉ่ำวาว" },
+      ],
+      dialogue: [
+        { zh: "我的生日是十二月二十日，我是射手座。", pinyin: "wǒ de shēngrì shì shí'èr yuè èrshí rì, wǒ shì shèshǒuzuò", thai: "วันเกิดของฉันคือวันที่ 20 ธันวาคม ฉันเป็นราศีธนู" },
+        { zh: "我的鞋码是三十九码。", pinyin: "wǒ de xiémǎ shì sānshíjiǔ mǎ", thai: "ฉันใส่รองเท้าเบอร์ 39" },
+        { zh: "我的人格类型是 ENTJ。", pinyin: "wǒ de réngé lèixíng shì ENTJ", thai: "บุคลิกภาพของฉันคือ ENTJ" },
+        { zh: "我喜欢捏捏，也喜欢水润一点的口红。", pinyin: "wǒ xǐhuan niēnie, yě xǐhuan shuǐrùn yìdiǎn de kǒuhóng", thai: "ฉันชอบสกุชชี่ และชอบลิปสติกที่ฉ่ำวาวหน่อย" },
+      ],
+      task: "录一段 30 秒自我介绍：生日、星座、鞋码、人格类型，再说两个喜欢的东西。",
+      thaiTask: "อัดเสียงแนะนำตัว 30 วินาที: วันเกิด ราศี เบอร์รองเท้า บุคลิกภาพ และสิ่งที่ชอบ 2 อย่าง",
+    },
+  ],
+};

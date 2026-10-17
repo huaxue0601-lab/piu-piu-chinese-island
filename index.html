@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fffaf3" />
+    <meta
+      name="description"
+      content="为 Piu 设计的中泰双语中文学习站"
+    />
+    <title>Piu Piu 中文岛</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css?v=10" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要内容</a>
+    <header class="topbar">
+      <button class="brand" data-route="home" onclick="setRoute('home')" aria-label="返回学习地图">
+        <span class="brand-mark">P</span>
+        <span>
+          <strong>Piu Piu 中文岛</strong>
+          <small>เกาะภาษาจีนของ Piu Piu</small>
+        </span>
+      </button>
+
+      <div class="topbar-actions">
+        <div class="segmented" aria-label="使用模式">
+          <button class="segment active" data-mode="learner" onclick="setMode('learner')">Piu 学习</button>
+          <button class="segment" data-mode="teacher" onclick="setMode('teacher')">Hua 备课</button>
+        </div>
+        <button class="icon-button" id="soundToggle" onclick="setRoute('pinyin')" title="声音设置" aria-label="声音设置">
+          ♫
+        </button>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1"></main>
+
+    <nav class="bottom-nav" aria-label="主要导航">
+      <button class="nav-item active" data-route="home" onclick="setRoute('home')">
+        <span aria-hidden="true">⌂</span><span>地图</span>
+      </button>
+      <button class="nav-item" data-route="lessons" onclick="setRoute('lessons')">
+        <span aria-hidden="true">▤</span><span>课程</span>
+      </button>
+      <button class="nav-item" data-route="pinyin" onclick="setRoute('pinyin')">
+        <span aria-hidden="true">ā</span><span>发音</span>
+      </button>
+      <button class="nav-item" data-route="games" onclick="setRoute('games')">
+        <span aria-hidden="true">✦</span><span>游戏</span>
+      </button>
+      <button class="nav-item" data-route="practice" onclick="setRoute('practice')">
+        <span aria-hidden="true">✓</span><span>练习</span>
+      </button>
+    </nav>
+
+    <dialog id="dialog">
+      <button class="dialog-close" onclick="document.querySelector('#dialog').close()" aria-label="关闭">×</button>
+      <div id="dialogContent"></div>
+    </dialog>
+
+    <script src="pinyin-data.js?v=10"></script>
+    <script src="content.js?v=10"></script>
+    <script src="thai-translations.js?v=10"></script>
+    <script src="miniGameLibs.js?v=10.1"></script>
+    <script src="materials.js?v=10"></script>
+    <script src="culture.js?v=10"></script>
+    <script src="life.js?v=10.1"></script>
+    <script src="strokes.js?v=10"></script>
+    <script src="enrichment.js?v=10"></script>
+    <script src="milestones.js?v=10"></script>
+    <script src="learning-store.js?v=10"></script>
+    <script src="app.js?v=10.2"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js?v=10.2").catch(function () {});
+      }
+    </script>
+  </body>
+</html>
