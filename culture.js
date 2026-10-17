@@ -6,11 +6,12 @@
 //   "5-0" → poem，"5-2" → slang，"5-3" → poem，"5-6" → poem
 
 window.cultureContent = {
+  // 每个插槽明确指定内容。不要按课号取模，否则不同课可能反复抽到同一篇。
   slots: {
-    "2-2": "origin", "2-4": "origin", "2-6": "origin",
-    "3-3": "idiom", "3-6": "idiom",
-    "4-2": "fact", "4-4": "fable", "4-7": "slang", "4-8": "fable", "4-11": "slang",
-    "5-0": "poem", "5-2": "slang", "5-3": "poem", "5-6": "poem",
+    "2-2": { type: "origin", index: 0 }, "2-4": { type: "origin", index: 1 }, "2-6": { type: "origin", index: 2 },
+    "3-3": { type: "idiom", index: 0 }, "3-6": { type: "idiom", index: 1 },
+    "4-2": { type: "fact", index: 0 }, "4-4": { type: "fable", index: 0 }, "4-7": { type: "slang", index: 0 }, "4-8": { type: "fable", index: 1 }, "4-11": { type: "slang", index: 2 },
+    "5-0": { type: "poem", index: 0 }, "5-2": { type: "slang", index: 1 }, "5-3": { type: "poem", index: 1 }, "5-6": { type: "poem", index: 2 },
   },
   origins: [
     {
@@ -225,9 +226,11 @@ window.cultureContent = {
 // 按阶段+课返回放松角内容（没有则返回 null）
 function getRelaxContent(stageId, unitIndex) {
   const key = `${stageId}-${unitIndex}`;
-  const type = window.cultureContent.slots[key];
-  if (!type) return null;
+  const slot = window.cultureContent.slots[key];
+  if (!slot) return null;
+  const type = typeof slot === "string" ? slot : slot.type;
   const list = window.cultureContent[type + "s"] || window.cultureContent[type];
   if (!list || !list.length) return null;
-  return { type, item: list[(stageId * 7 + unitIndex) % list.length], all: list };
+  const index = typeof slot === "string" ? 0 : slot.index;
+  return { type, item: list[index % list.length], all: list };
 }

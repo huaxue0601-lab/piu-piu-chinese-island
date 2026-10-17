@@ -308,6 +308,8 @@ const state = {
   learningDataReady: false,
   milestoneProgress: loadStoredJSON("piu-milestones", {}),
   supportLevel: localStorage.getItem("piu-support-level") || "full",
+  levelOneIndex: 0,
+  levelOneCompleted: loadStoredJSON("piu-level-one-progress", []),
 };
 
 const main = document.querySelector("main");
@@ -316,7 +318,7 @@ const dialogContent = document.querySelector("#dialogContent");
 
 function setRoute(route) {
   state.route = route;
-  const activeRoute = route === "lesson" || route === "unit" ? "lessons" : route;
+  const activeRoute = ["lesson", "unit", "level-one", "level-one-lesson"].includes(route) ? "lessons" : route;
   document.querySelectorAll("[data-route]").forEach((button) => {
     button.classList.toggle("active", button.dataset.route === activeRoute);
   });
@@ -443,9 +445,92 @@ function renderStandardBenchmark() {
     <div class="section-heading"><div><p class="eyebrow">GF 0025-2021</p><h2>${benchmark.title}</h2><p class="thai">${benchmark.thai}</p></div><span>一级前置基础 · พื้นฐานก่อนระดับ 1</span></div>
     <div class="benchmark-layout">
       <div class="benchmark-metrics">${benchmark.metrics.map(([name, value, thai]) => `<div><strong>${value}</strong><span>${name}</span><small>${thai}</small></div>`).join("")}</div>
-      <div class="benchmark-copy"><strong>一级常用话题</strong><p>${benchmark.topics}</p><p class="thai">${benchmark.thaiTopics}</p><div class="benchmark-note"><p>${benchmark.note}</p><p class="thai">${benchmark.thaiNote}</p></div></div>
+      <div class="benchmark-copy"><strong>一级常用话题</strong><p>${benchmark.topics}</p><p class="thai">${benchmark.thaiTopics}</p><div class="benchmark-note"><p>${benchmark.note}</p><p class="thai">${benchmark.thaiNote}</p></div><button class="primary-button" onclick="setRoute('level-one')">查看正式一级课程 →<small class="thai">ดูหลักสูตรระดับ 1</small></button></div>
     </div>
   </section>`;
+}
+
+function isLevelOneComplete(index) {
+  return state.levelOneCompleted.includes(window.levelOneCourse.lessons[index].id);
+}
+
+function renderLevelOneCoverage(compact = false) {
+  const course = window.levelOneCourse;
+  const inventory = window.getLevelOneInventory();
+  const metrics = [
+    ["音节", "พยางค์", inventory.syllables, course.targets.syllables],
+    ["汉字", "ตัวอักษรจีน", inventory.characters, course.targets.characters],
+    ["词语", "คำศัพท์", inventory.words, course.targets.words],
+    ["语法点", "ไวยากรณ์", inventory.grammar, course.targets.grammar],
+  ];
+  return `<section class="${compact ? "level-one-coverage compact" : "section level-one-coverage"}">
+    <div class="section-heading"><div><p class="eyebrow">LEVEL 1 LEDGER · บัญชีระดับ 1</p><h2>已建内容台账</h2><p>只统计正式一级课程当前已加入的内容，不把 A0 接触过的内容重复算作达标。</p><p class="thai">นับเฉพาะเนื้อหาที่เพิ่มในหลักสูตรระดับ 1 และไม่ถือว่าเนื้อหา A0 ที่เคยเห็นคือผ่านแล้ว</p></div><span>首单元 · หน่วยแรก</span></div>
+    <div class="coverage-grid">${metrics.map(([zh, thai, value, target]) => `<article><div><strong>${value}</strong><span>/ ${target}</span></div><b>${zh}</b><small>${thai}</small><progress value="${value}" max="${target}"></progress></article>`).join("")}</div>
+    <p class="coverage-warning">当前数字表示“课程中已经安排”，不是 Piu 已经掌握；掌握状态以逐课完成和复习表现为准。</p>
+    <p class="thai coverage-warning">ตัวเลขหมายถึง “จัดไว้ในหลักสูตรแล้ว” ไม่ได้แปลว่า Piu เชี่ยวชาญแล้ว ต้องดูจากการจบบทและผลทบทวน</p>
+  </section>`;
+}
+
+function renderLevelOneCatalog() {
+  const course = window.levelOneCourse;
+  return `${pageHead("FORMAL LEVEL 1", course.title, course.statusNote, course.thaiStatusNote)}
+    ${renderLevelOneCoverage()}
+    <section class="section">
+      <div class="section-heading"><div><h2>${course.unitTitle}</h2><p class="thai">${course.thaiUnitTitle}</p></div><span>${state.levelOneCompleted.length} / ${course.lessons.length} 已完成 · เรียนแล้ว</span></div>
+      <div class="formal-unit-grid">${course.lessons.map((lesson, index) => `<button class="formal-unit-card ${isLevelOneComplete(index) ? "completed" : ""}" onclick="openLevelOneLesson(${index})"><span>第 ${index + 1} 课 · บทที่ ${index + 1}</span><h3>${lesson.title}</h3><p class="thai">${lesson.thaiTitle}</p><p>${lesson.goal}</p><p class="thai">${lesson.thaiGoal}</p><small>${isLevelOneComplete(index) ? "✓ 已完成 · เรียนแล้ว" : "进入完整课程 → เข้าสู่บทเรียน"}</small></button>`).join("")}</div>
+    </section>
+    <section class="section ledger-detail teacher-only"><div class="section-heading"><div><h2>Hua 的备课台账</h2><p class="thai">บัญชีเตรียมสอนสำหรับ Hua</p></div></div>
+      <div class="ledger-table-wrap"><table><thead><tr><th>词语<br><small>คำศัพท์</small></th><th>拼音<br><small>พินอิน</small></th><th>泰语<br><small>ภาษาไทย</small></th><th>初次出现<br><small>ปรากฏครั้งแรก</small></th><th>后续复现<br><small>ทบทวนภายหลัง</small></th></tr></thead><tbody>${window.getLevelOneInventory().wordItems.map((item) => `<tr><td>${item.zh}</td><td>${item.pinyin}</td><td>${item.thai}</td><td>第 ${item.firstLesson} 课 · บท ${item.firstLesson}</td><td>${item.reviews} 次 · ${item.reviews} ครั้ง</td></tr>`).join("")}</tbody></table></div>
+    </section>`;
+}
+
+function openLevelOneLesson(index) {
+  state.levelOneIndex = Number(index);
+  setRoute("level-one-lesson");
+}
+
+function levelOneAudioButton(text, label, rate) {
+  return `<button class="secondary-button audio-speed-button" onclick="speakChinese('${text.replace(/'/g, "")}', ${rate})">▶ ${label}</button>`;
+}
+
+function renderLevelOneLesson(index) {
+  const course = window.levelOneCourse;
+  const lesson = course.lessons[index];
+  const complete = isLevelOneComplete(index);
+  return `<div class="lesson-layout formal-lesson-layout">
+    <aside class="lesson-sidebar"><button class="text-button" onclick="setRoute('level-one')">← 返回一级目录 · กลับสารบัญระดับ 1</button><p class="eyebrow">${course.unitTitle} · 第 ${index + 1} 课 · บทที่ ${index + 1}</p><h1>${lesson.title}</h1><p class="thai">${lesson.thaiTitle}</p><div class="meta-list"><div class="meta-item"><small>本课容量 · เนื้อหาบทนี้</small><strong>${lesson.words.length} 词 · ${lesson.grammar.length} 语法 · ${lesson.examples.length} 例句</strong><span class="thai">${lesson.words.length} คำ · ${lesson.grammar.length} ไวยากรณ์ · ${lesson.examples.length} ตัวอย่าง</span></div><div class="meta-item"><small>完成标准 · เกณฑ์ผ่าน</small><strong>完成对话、听读和真实任务</strong><span class="thai">ทำบทสนทนา การฟังอ่าน และภารกิจจริงให้ครบ</span></div></div></aside>
+    <article class="lesson-content">
+      <div class="outcome-band"><p class="eyebrow">本课目标 · เป้าหมาย</p><h2>${lesson.goal}</h2><p class="thai">${lesson.thaiGoal}</p></div>
+      ${renderSupportControl()}
+      ${lesson.review.length ? `<section class="content-section spiral-review"><div class="section-heading"><div><p class="eyebrow">循环复习 · ทบทวนแบบวนซ้ำ</p><h2>先找回旧词，再学新内容</h2><p class="thai">เรียกคำเก่ากลับมาก่อน แล้วจึงเรียนเนื้อหาใหม่</p></div><span>${lesson.review.length} 个旧词 · คำเก่า ${lesson.review.length} คำ</span></div><div class="review-word-row">${lesson.review.map((word) => `<button onclick="speakChinese('${word}')"><strong>${word}</strong></button>`).join("")}</div></section>` : ""}
+      <section class="content-section teacher-script teacher-only"><div class="section-heading"><div><p class="eyebrow">HUA TEACHING SCRIPT</p><h2>这一课怎么讲</h2><p class="thai">แนวทางสอนบทนี้</p></div><span>只纠 1–2 处 · แก้ 1–2 จุด</span></div><div class="depth-steps">${lesson.teacherScript.map((step, i) => `<div><b>0${i + 1}</b><span>${step[0]}</span><small class="thai">${step[1]}</small></div>`).join("")}</div></section>
+      <section class="content-section"><div class="section-heading"><div><h2>本课新词</h2><p class="thai">คำศัพท์ใหม่</p></div><span>${lesson.words.length} 词 · ${lesson.words.length} คำ</span></div><div class="learning-item-grid">${lesson.words.map((word) => `<article class="learning-item"><button class="play-button" onclick="speakChinese('${word.zh}')">▶</button><strong class="content-text">${word.zh}</strong><span class="pinyin-line support-pinyin">${word.pinyin}</span><small class="support-thai">${word.thai}</small>${vocabularyButton(word, 6, index, "level-one")}</article>`).join("")}</div></section>
+      <section class="content-section grammar-panel"><div class="section-heading"><div><h2>语法只学两点</h2><p class="thai">เรียนไวยากรณ์เพียง 2 จุด</p></div></div><div class="formal-grammar-grid">${lesson.grammar.map((item) => `<article><h3>${item.name}</h3><p class="thai">${item.thai}</p><strong>${item.formula}</strong><p>${item.note}</p><p class="thai">${item.thaiNote}</p></article>`).join("")}</div></section>
+      <section class="content-section teaching-example-bank"><div class="section-heading"><div><h2>8 个分层例句</h2><p>从基础、疑问、否定到真实表达，每句都可听。</p><p class="thai">จากพื้นฐาน คำถาม ปฏิเสธ ไปสู่การใช้จริง ทุกประโยคกดฟังได้</p></div></div><div class="teaching-example-list">${lesson.examples.map((item, i) => `<article class="teaching-example"><span class="example-number">${String(i + 1).padStart(2, "0")}</span><button class="play-button" onclick="speakChinese('${item.zh.replace(/'/g, "")}')">▶</button><div><strong>${item.zh}</strong><span class="support-pinyin">${item.pinyin}</span><small class="support-thai">${item.thai}</small></div></article>`).join("")}</div></section>
+      <section class="content-section"><div class="section-heading"><div><h2>两段完整对话</h2><p class="thai">บทสนทนาสมบูรณ์ 2 บท</p></div></div><div class="dialogue-pair">${lesson.dialogues.map((dialogue) => `<article><h3>${dialogue.title}</h3><p class="thai">${dialogue.thaiTitle}</p>${dialogue.lines.map((line, i) => `<div class="dialogue-line"><span>${i % 2 ? "B" : "A"}</span><button class="play-button" onclick="speakChinese('${line.zh.replace(/'/g, "")}')">▶</button><div><strong>${line.zh}</strong><small class="support-pinyin">${line.pinyin}</small><small class="support-thai">${line.thai}</small></div></div>`).join("")}</article>`).join("")}</div></section>
+      <section class="content-section listening-lab"><div class="section-heading"><div><h2>同一段听两种速度</h2><p>慢速先抓词，自然速度再抓完整意思；当前为设备普通话语音。</p><p class="thai">ฟังช้าเพื่อจับคำ แล้วฟังความเร็วธรรมชาติเพื่อจับความหมาย ขณะนี้ใช้เสียงภาษาจีนจากอุปกรณ์</p></div></div><div class="audio-speed-row">${levelOneAudioButton(lesson.listening.zh, "慢速 · ช้า", 0.55)}${levelOneAudioButton(lesson.listening.zh, "自然速度 · ธรรมชาติ", 0.88)}</div><details><summary>听完再看原文 · ฟังเสร็จแล้วค่อยดูข้อความ</summary><p><strong>${lesson.listening.zh}</strong></p><p class="support-pinyin">${lesson.listening.pinyin}</p><p class="support-thai">${lesson.listening.thai}</p></details><div class="standard-task"><strong>听力问题 · คำถามการฟัง</strong><p>${lesson.listeningQuestion}</p><p class="thai">${lesson.thaiListeningQuestion}</p></div></section>
+      <section class="content-section reading-lab"><div class="section-heading"><div><h2>生活短文</h2><p class="thai">บทอ่านชีวิตประจำวัน</p></div><span>读意群，不逐字翻译 · อ่านเป็นกลุ่มคำ</span></div><button class="secondary-button" onclick="speakChinese('${lesson.reading.zh.replace(/'/g, "")}', 0.72)">▶ 听全文 · ฟังทั้งหมด</button><p class="reading-zh">${lesson.reading.zh}</p><p class="support-pinyin">${lesson.reading.pinyin}</p><p class="support-thai">${lesson.reading.thai}</p></section>
+      <section class="content-section in-lesson-game"><div class="section-heading"><div><p class="eyebrow">讲到这里就玩 · เล่นระหว่างเรียน</p><h2>选出能完成沟通的一句</h2><p class="thai">เลือกประโยคที่สื่อสารได้จริง</p></div></div><p><strong>${lesson.game.prompt}</strong></p><p class="thai">${lesson.game.thaiPrompt}</p><div class="mini-choice-grid">${lesson.game.options.map((option, optionIndex) => `<button onclick="answerLevelOneGame(${index}, ${optionIndex}, this)">${option}</button>`).join("")}</div><p class="reading-feedback" id="level-one-game-feedback-${index}"></p></section>
+      <section class="practice-band"><div><p class="eyebrow">真实任务 · ภารกิจจริง</p><h3>${lesson.task}</h3><p class="thai">${lesson.thaiTask}</p></div></section>
+      <div class="lesson-actions"><button class="${complete ? "secondary-button" : "primary-button"}" onclick="toggleLevelOneComplete(${index})">${complete ? "✓ 本课已完成 · เรียนแล้ว" : "完成本课 · เรียนบทนี้เสร็จ"}</button>${index > 0 ? `<button class="secondary-button" onclick="openLevelOneLesson(${index - 1})">上一课 · บทก่อนหน้า</button>` : ""}${index < course.lessons.length - 1 ? `<button class="primary-button" onclick="openLevelOneLesson(${index + 1})">下一课 · บทถัดไป</button>` : `<button class="primary-button" onclick="setRoute('level-one')">返回单元台账 · กลับบัญชีหน่วย</button>`}</div>
+    </article></div>`;
+}
+
+function answerLevelOneGame(lessonIndex, optionIndex, button) {
+  const lesson = window.levelOneCourse.lessons[lessonIndex];
+  const feedback = document.querySelector(`#level-one-game-feedback-${lessonIndex}`);
+  button.parentElement.querySelectorAll("button").forEach((item) => item.classList.remove("selected-answer"));
+  button.classList.add("selected-answer");
+  feedback.innerHTML = optionIndex === lesson.game.answer
+    ? '<span class="feedback-ok">✓ 对，这句话能完成当前沟通。· ถูก ประโยคนี้สื่อสารได้</span>'
+    : '<span class="try-again">再看情境和句子的功能。· ลองดูสถานการณ์และหน้าที่ของประโยคอีกครั้ง</span>';
+}
+
+function toggleLevelOneComplete(index) {
+  const id = window.levelOneCourse.lessons[index].id;
+  state.levelOneCompleted = state.levelOneCompleted.includes(id) ? state.levelOneCompleted.filter((item) => item !== id) : [...state.levelOneCompleted, id];
+  localStorage.setItem("piu-level-one-progress", JSON.stringify(state.levelOneCompleted));
+  render();
 }
 
 function renderHome() {
@@ -648,6 +733,10 @@ function renderLessons() {
               <p>${unit.goal}</p><p class="thai">${unit.thaiGoal}</p>
               <small>${isUnitComplete(stage.id, index) ? "✓ 已完成 · 再复习" : "进入课程 →"}</small>
             </button>`).join("")}</div>`}
+    </section>
+    <section class="section formal-course-entry">
+      <div><p class="eyebrow">NEXT COURSE · หลักสูตรถัดไป</p><h2>${window.levelOneCourse.title}</h2><p>${window.levelOneCourse.statusNote}</p><p class="thai">${window.levelOneCourse.thaiStatusNote}</p></div>
+      <button class="primary-button" onclick="setRoute('level-one')">进入一级首单元 →<small class="thai">เข้าสู่หน่วยแรกระดับ 1</small></button>
     </section>`;
 }
 
@@ -1081,12 +1170,12 @@ function buildGenericTimeline(lesson) {
   ];
 }
 
-function speakChinese(text) {
+function speakChinese(text, rate = 0.62) {
   if (!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "zh-CN";
-  utterance.rate = 0.62;
+  utterance.rate = rate;
   speechSynthesis.speak(utterance);
 }
 
@@ -1349,6 +1438,8 @@ function render() {
   if (state.route === "lessons") main.innerHTML = renderLessons();
   if (state.route === "lesson") main.innerHTML = renderLessonDetail(state.lessonId);
   if (state.route === "unit") main.innerHTML = renderUnitDetail(state.unitStage, state.unitIndex);
+  if (state.route === "level-one") main.innerHTML = renderLevelOneCatalog();
+  if (state.route === "level-one-lesson") main.innerHTML = renderLevelOneLesson(state.levelOneIndex);
   if (state.route === "pinyin") main.innerHTML = renderPinyin();
   if (state.route === "games") main.innerHTML = renderGames();
   if (state.route === "practice") main.innerHTML = renderPractice();
