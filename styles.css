@@ -1113,6 +1113,7 @@ body[data-support="pinyin"] .learning-item .support-thai,
 body[data-support="pinyin"] .enrichment-item .support-thai,
 body[data-support="pinyin"] .example-row .support-thai,
 body[data-support="pinyin"] .standard-input-list .support-thai,
+body[data-support="pinyin"] .teaching-example .support-thai,
 body[data-support="pinyin"] .review-word-row .support-thai { display: none; }
 body[data-support="hanzi"] .learning-item .support-thai,
 body[data-support="hanzi"] .learning-item .support-pinyin,
@@ -1122,6 +1123,8 @@ body[data-support="hanzi"] .example-row .support-thai,
 body[data-support="hanzi"] .example-row .support-pinyin,
 body[data-support="hanzi"] .standard-input-list .support-thai,
 body[data-support="hanzi"] .standard-input-list .support-pinyin,
+body[data-support="hanzi"] .teaching-example .support-thai,
+body[data-support="hanzi"] .teaching-example .support-pinyin,
 body[data-support="hanzi"] .review-word-row .support-thai,
 body[data-support="hanzi"] .review-word-row .support-pinyin { display: none; }
 
@@ -1150,6 +1153,23 @@ body[data-support="hanzi"] .review-word-row .support-pinyin { display: none; }
 .standard-input-list small { margin-top: 3px; color: var(--muted); line-height: 1.55; }
 .standard-task { margin-top: 10px; padding: 13px; border: 1px dashed var(--coral); background: #fff4f1; }
 .standard-task p { margin: 5px 0 0; }
+
+.teaching-example-bank { border-left: 4px solid var(--violet); }
+.teaching-example-list { display: grid; gap: 8px; }
+.teaching-example { display: grid; grid-template-columns: 30px 36px minmax(0, 1fr); gap: 9px; align-items: start; padding: 12px; border: 1px solid var(--line); background: var(--card); }
+.example-number { padding-top: 7px; color: var(--muted); font-family: Georgia, serif; font-size: 12px; font-weight: 800; }
+.teaching-example > div { min-width: 0; }
+.teaching-example > div > strong, .teaching-example > div > span, .teaching-example > div > small { display: block; overflow-wrap: anywhere; }
+.teaching-example > div > strong { margin-top: 5px; font-size: 18px; line-height: 1.5; }
+.teaching-example > div > .support-pinyin { color: var(--accent-dark); line-height: 1.5; }
+.teaching-example > div > .support-thai { margin-top: 2px; color: var(--muted); line-height: 1.55; }
+.example-kind { width: fit-content; padding: 3px 6px; border-radius: 4px; background: var(--violet-soft); color: #44366f; font-size: 11px; font-weight: 800; }
+.example-kind small { display: inline; margin-left: 5px; color: inherit; font-size: 10px; font-weight: 500; }
+.more-examples { margin-top: 10px; border: 1px solid var(--line); background: var(--surface); }
+.more-examples summary { padding: 12px; cursor: pointer; font-weight: 800; }
+.more-examples summary span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 500; }
+.more-examples[open] summary { border-bottom: 1px solid var(--line); }
+.more-examples .teaching-example-list { padding: 10px; }
 
 .spiral-review { border-left: 4px solid var(--teal); }
 .review-word-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }

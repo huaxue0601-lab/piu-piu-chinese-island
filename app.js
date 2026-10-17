@@ -537,6 +537,24 @@ function renderStandardLessonDepth(stageId, unitIndex) {
   </section>`;
 }
 
+function renderLessonExampleBank(stageId, unitIndex) {
+  const examples = window.lessonExampleBanks?.[stageId]?.[unitIndex] || [];
+  if (!examples.length) return "";
+  const renderExample = (item, index) => `<article class="teaching-example">
+    <span class="example-number">${String(index + 1).padStart(2, "0")}</span>
+    <button class="play-button" onclick="speakChinese('${item.zh.replace(/'/g, "")}')" aria-label="播放 ${item.zh}">▶</button>
+    <div><span class="example-kind">${item.kind}<small>${item.thaiKind}</small></span><strong>${item.zh}</strong><span class="support-pinyin">${item.pinyin}</span><small class="support-thai">${item.thai}</small>${vocabularyButton(item, stageId, unitIndex, "example-bank")}</div>
+  </article>`;
+  return `<section class="content-section teaching-example-bank">
+    <div class="section-heading"><div><p class="eyebrow">本课示范例库 · ตัวอย่างประจำบท</p><h2>不只讲重点，直接看例子怎么变</h2><p>从基础句开始，再看替换、否定、疑问或真实情境。每句都可以播放。</p><p class="thai">เริ่มจากประโยคพื้นฐาน แล้วดูการแทนคำ ปฏิเสธ คำถาม หรือสถานการณ์จริง ทุกประโยคกดฟังได้</p></div><span>${examples.length} 条示范 · ${examples.length} ตัวอย่าง</span></div>
+    <div class="teaching-example-list">${examples.slice(0, 3).map(renderExample).join("")}</div>
+    <details class="more-examples" ${state.mode === "teacher" ? "open" : ""}>
+      <summary>展开更多例子（${examples.length - 3}）<span>ดูตัวอย่างเพิ่มอีก ${examples.length - 3} ประโยค</span></summary>
+      <div class="teaching-example-list">${examples.slice(3).map((item, index) => renderExample(item, index + 3)).join("")}</div>
+    </details>
+  </section>`;
+}
+
 function renderSpiralReview(stageId, unitIndex) {
   if (unitIndex === 0) return "";
   const previousUnits = window.stageCurriculum?.[stageId]?.slice(Math.max(0, unitIndex - 2), unitIndex) || [];
@@ -708,6 +726,7 @@ function renderUnitDetail(stageId, unitIndex) {
           </div>
         </section>
         ${renderStandardLessonDepth(stageId, unitIndex)}
+        ${renderLessonExampleBank(stageId, unitIndex)}
         ${renderEnrichment(window.stageEnrichment?.[stageId]?.[unitIndex], stageId, unitIndex)}
         ${renderSpiralReview(stageId, unitIndex)}
 

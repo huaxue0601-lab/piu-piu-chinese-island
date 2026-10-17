@@ -13,6 +13,7 @@ const ASSETS = [
   "./pinyin-data.js?v=11",
   "./content.js?v=11",
   "./standards-content.js?v=11",
+  "./example-bank.js?v=11",
   "./thai-translations.js?v=11",
   "./miniGameLibs.js?v=11",
   "./materials.js?v=11",

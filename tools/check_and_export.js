@@ -24,6 +24,7 @@ function read(p) {
 const files = [
   "index.html", "styles.css", "app.js", "content.js", "pinyin-data.js",
   "standards-content.js",
+  "example-bank.js",
   "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js",
   "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "assets/picture-talk/s4-u1.jpg",
@@ -34,6 +35,7 @@ files.forEach((f) => ok(fs.existsSync(path.join(ROOT, f)), `缺少文件 ${f}`))
 const html = read("index.html") || "";
 const app = read("app.js") || "";
 const standards = read("standards-content.js") || "";
+const exampleBanks = read("example-bank.js") || "";
 const thai = read("thai-translations.js") || "";
 const games = read("miniGameLibs.js") || "";
 const mats = read("materials.js") || "";
@@ -46,7 +48,7 @@ const store = read("learning-store.js") || "";
 const sw = read("sw.js") || "";
 
 // —— 脚本版本参（v4 踩过的缓存坑）——
-["styles.css", "pinyin-data.js", "content.js", "standards-content.js", "thai-translations.js", "materials.js", "culture.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js"].forEach((s) => {
+["styles.css", "pinyin-data.js", "content.js", "standards-content.js", "example-bank.js", "thai-translations.js", "materials.js", "culture.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js"].forEach((s) => {
   ok(html.includes(`${s}?v=11`), `index.html 未带 v11 版本参 ${s}`);
 });
 ok(html.includes("miniGameLibs.js?v=11"), "miniGameLibs 未带 v11 版本参");
@@ -160,8 +162,26 @@ ok((standards.match(/thaiTask:/g) || []).length === 36, "36 课交际任务泰�
 ["renderStandardBenchmark", "renderStandardLessonDepth"].forEach((fn) => ok(app.includes(`function ${fn}`), `标准内容渲染缺 ${fn}`));
 ok(sw.includes("standards-content.js?v=11"), "离线缓存缺标准扩展内容");
 
+// —— 逐课示范例库（v11）——
+ok(app.includes("function renderLessonExampleBank"), "示范例库渲染缺失");
+ok(app.includes("本课示范例库 · ตัวอย่างประจำบท"), "示范例库缺中泰标题");
+ok(sw.includes("example-bank.js?v=11"), "离线缓存缺示范例库");
+try {
+  const sandbox = { window: {} };
+  vm.runInNewContext(exampleBanks, sandbox);
+  const banks = sandbox.window.lessonExampleBanks;
+  const lessons = Object.values(banks).flat();
+  const examples = lessons.flat();
+  ok(lessons.length === 36, `示范例库课程数应为 36，实际 ${lessons.length}`);
+  ok(examples.length >= 216, `示范例子应不少于 216，实际 ${examples.length}`);
+  ok(lessons.every((items) => items.length >= 6), "存在少于 6 条示范的课程");
+  ok(examples.every((item) => item.zh && item.pinyin && item.thai && item.kind && item.thaiKind), "示范例子缺中文、拼音、泰语或分类");
+} catch (error) {
+  ERRORS.push(`示范例库无法读取：${error.message}`);
+}
+
 // —— 语法（node --check）——
-["app.js", "content.js", "standards-content.js", "pinyin-data.js", "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js", "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js"].forEach((f) => {
+["app.js", "content.js", "standards-content.js", "example-bank.js", "pinyin-data.js", "thai-translations.js", "miniGameLibs.js", "materials.js", "culture.js", "life.js", "strokes.js", "enrichment.js", "milestones.js", "learning-store.js", "sw.js"].forEach((f) => {
   try { execSync(`node --check "${path.join(ROOT, f)}"`, { stdio: "pipe" }); pass += 1; }
   catch { ERRORS.push(`语法错误 ${f}`); }
 });
